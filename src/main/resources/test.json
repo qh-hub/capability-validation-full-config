@@ -1,0 +1,72 @@
+{
+  "systemCode": "SYS-GATEWAY-2025",
+  "dept": "中间件平台部",
+  "applicant": "zhangsan@example.com",
+  "capabilities": [
+    "resource",
+    "nacos",
+    "microGateway",
+    "distGateway",
+    "message",
+    "cache",
+    "transaction",
+    "extGateway",
+    "job",
+    "sequence"
+  ],
+  "configData": {
+    "resource": {
+      "tenantName": "platform_tenant_01",
+      "enableReadOnlyUser": true,
+      "readOnlyUserName": "ro_user_gateway",
+      "enableNonReadOnlyUser": true,
+      "nonReadOnlyUsername": "admin_user_gateway"
+    },
+    "nacos": {
+      "userName": "nacos_user_01"
+    },
+    "distGateway": {
+      "microGatewayBaseUrl": "https://micro-gw.example.com/api",
+      "esbBaseUrl": "https://esb.example.com/v1",
+      "subscribedServices": [
+        {
+          "serviceCode": "NB.IF.1901",
+          "systemCode": "SYS_USER",
+          "serviceName": "用户信息查询服务"
+        }
+      ],
+      "publishedServices": [
+        {
+          "serviceCode": "NP.CC.001",
+          "serviceName": "通知发送服务",
+          "gatewayUrl": "https://gateway.example.com/notify/v1/send",
+          "timeoutMs": 2500
+        }
+      ]
+    },
+    "message": {
+      "scene": "order_processing",
+      "cluster": "rocketmq-prod",
+      "clusterDetail": "主备双活集群",
+      "clusterNameSpace": "prod-ns",
+      "TopicName": "ORDER_TOPIC",
+      "groupName": "GID_ORDER_CONSUMER"
+    },
+    "cache": {
+      "useCacheClient": true,
+      "performanceTesting": "已完成压测，QPS 10k+",
+      "unsafeCmd": "flushall,flushdb",
+      "unsafeCmdEnable": true,
+      "useUnsafeCmdReason": "使用危险命令的理由"
+    },
+    "transaction": {
+      "transactionMode": "local/network",
+      "enableObjectSave": true,
+      "requiredObjectSave": true
+    },
+    "extGateway": {},
+    "job": {},
+    "sequence": {},
+    "microGateway": {}
+  }
+}

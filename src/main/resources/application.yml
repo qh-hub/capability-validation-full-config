@@ -1,0 +1,82 @@
+# 资源接入申请
+app-access-application:
+  capabilities:
+    - type: resource
+      dependencies: []
+      field_rules:
+        # === 无条件必填字段 ===
+        - required_fields:
+            - tenantName
+        # === 条件必填字段 ===
+        - condition_field: enableReadOnlyUser
+          expected_value: true
+          required_fields:
+            - readOnlyUserName
+        - condition_field: enableNonReadOnlyUser
+          expected_value: true
+          required_fields:
+            - nonReadOnlyUsername
+    - type: nacos
+      dependencies:
+        - resource
+      field_rules:
+          - required_fields:
+             - userName
+    - type: microGateway
+      dependencies:
+        - nacos
+        - resource
+    - type: distGateway
+      dependencies: []
+      custom_validator: gatewayServiceValidator
+      field_rules:
+          - required_fields:
+              - microGatewayBaseUrl
+              - esbBaseUrl
+    - type: message
+      dependencies:
+        - resource
+      field_rules:
+          - required_fields:
+              - scene
+              - cluster
+              - clusterDetail
+              - clusterNameSpace
+              - TopicName
+              - groupName
+    - type: job
+      dependencies:
+        - resource
+    - type: cache
+      dependencies: []
+      field_rules:
+          - required_fields:
+              - useCacheClient
+              - performanceTesting
+          - condition_field: unsafeCmdEnable
+            expected-value: true
+            required-fields:
+              - useUnsafeCmdReason
+    - type: sequence
+      dependencies:
+        - resource
+    - type: transaction
+      conditional_dependencies:
+        - condition_field: platform
+          expected_value: "OSS"
+          required_capabilities:
+            - resource
+            - nacos
+      field-rules:
+        - required-fields:
+            - transactionMode
+        - condition_field: enableObjectSave
+          expected_value: true
+          required-fields:
+            - requiredObjectSave
+    - type: extGateway
+      dependencies: []
+
+spring:
+  application:
+    name: capability-validation-engine
