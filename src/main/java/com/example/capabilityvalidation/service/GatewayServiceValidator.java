@@ -7,6 +7,10 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * 网关服务能力验证器，实现自定义字段校验接口。
+ * 负责对网关服务能力配置进行合法性检查，包括订阅服务与发布服务的完整性、格式及业务规则验证。
+ */
 @Component("gatewayServiceValidator")
 public class GatewayServiceValidator implements CustomFieldValidator {
 
@@ -21,6 +25,13 @@ public class GatewayServiceValidator implements CustomFieldValidator {
                     "(?:/.*)?$"               // 可选路径
     );
 
+    /**
+     * 对指定能力类型的配置数据进行校验。
+     *
+     * @param capabilityType 能力类型名称，用于构建异常信息上下文
+     * @param configData     配置数据映射表，包含订阅服务列表和发布服务列表等字段
+     * @throws ValidationException 当配置不符合规范时抛出该异常
+     */
     @Override
     public void validate(String capabilityType, Map<String, Object> configData) {
         if (configData == null) {
@@ -109,6 +120,15 @@ public class GatewayServiceValidator implements CustomFieldValidator {
         }
     }
 
+    /**
+     * 获取对象中某个字段的字符串值，并做基本非空判断。
+     *
+     * @param obj    数据对象
+     * @param field  字段名
+     * @param prefix 错误提示前缀路径
+     * @return 字符串值
+     * @throws ValidationException 若字段不存在、不是字符串或为空时抛出异常
+     */
     private String getStringValue(Map<String, Object> obj, String field, String prefix) {
         Object value = obj.get(field);
         if (value == null) {
@@ -124,6 +144,14 @@ public class GatewayServiceValidator implements CustomFieldValidator {
         return str;
     }
 
+    /**
+     * 验证给定对象是否包含所有必需字段且不为空。
+     *
+     * @param obj           待验证的对象
+     * @param prefix        异常消息中的字段路径前缀
+     * @param requiredFields 所有必须存在的字段名数组
+     * @throws ValidationException 若任一必填字段缺失或为空时抛出异常
+     */
     private void validateRequiredFields(Map<String, Object> obj, String prefix, String... requiredFields) {
         if (obj == null) {
             throw new ValidationException(prefix + " 不能为 null");
@@ -139,6 +167,14 @@ public class GatewayServiceValidator implements CustomFieldValidator {
         }
     }
 
+    /**
+     * 检查指定编码是否已存在集合中，防止重复。
+     *
+     * @param seen       已经记录过的编码集合
+     * @param code       当前待检查的编码
+     * @param fieldPath  出错时显示的字段路径
+     * @throws ValidationException 若发现重复编码则抛出异常
+     */
     private void checkDuplicate(Set<String> seen, String code, String fieldPath) {
         if (!seen.add(code)) {
             throw new ValidationException(fieldPath + " 重复：'" + code + "'");

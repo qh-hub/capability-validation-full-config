@@ -12,6 +12,12 @@ import org.springframework.util.CollectionUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 基于规则的能力验证服务类。
+ * <p>
+ * 该类负责根据预定义的能力规则配置，对用户提交的系统应用 DTO 进行合法性校验，
+ * 包括能力间的依赖关系检查以及各能力对应字段的规则校验。
+ */
 @Service
 public class RuleBasedValidator {
 
@@ -23,11 +29,21 @@ public class RuleBasedValidator {
 
     private Map<String, CustomFieldValidator> customValidatorMap;
 
+    /**
+     * 初始化自定义字段验证器映射表。
+     * 在 Spring 容器初始化完成后自动调用，获取所有实现了 {@link CustomFieldValidator} 接口的 Bean 实例。
+     */
     @PostConstruct
     public void initCustomValidators() {
         customValidatorMap = applicationContext.getBeansOfType(CustomFieldValidator.class);
     }
 
+    /**
+     * 对传入的系统应用 DTO 进行全面的能力规则校验。
+     *
+     * @param dto 待校验的系统应用数据传输对象，包含所选能力和对应的配置信息
+     * @throws ValidationException 当校验失败时抛出异常，携带具体的错误描述信息
+     */
     public void validate(SystemApplicationDTO dto) {
         List<String> selectedCaps = dto.getCapabilities();
         if (selectedCaps == null || selectedCaps.isEmpty()) {
@@ -101,6 +117,14 @@ public class RuleBasedValidator {
         }
     }
 
+    /**
+     * 校验指定能力类型的字段规则。
+     *
+     * @param capabilityType 能力类型标识符
+     * @param configBlock    当前能力的配置块数据
+     * @param capDef         当前能力的定义信息，包括其字段规则列表
+     * @throws ValidationException 若字段不符合规则要求则抛出异常
+     */
     private void validateFieldRules(String capabilityType,
                                     Map<String, Object> configBlock,
                                     CapabilityRuleConfig.CapabilityDefinition capDef) {
@@ -132,12 +156,19 @@ public class RuleBasedValidator {
         }
     }
 
-    // 辅助方法：判断字段是否存在且非空（支持 String / 非空对象）
+    /**
+     * 判断给定字段在配置中是否存在且具有非空白的有效值。
+     *
+     * @param map   字段所在的配置映射表
+     * @param field 待判断的字段名
+     * @return 如果字段存在并且值不为空或空白字符串，则返回 true；否则返回 false
+     */
     private boolean hasNonBlankValue(Map<String, Object> map, String field) {
         Object val = map.get(field);
         if (val == null) return false;
         if (val instanceof String) return !((String) val).isBlank();
-        if (val instanceof List) return !CollectionUtils.isEmpty((List)val);
+        if (val instanceof List) return !CollectionUtils.isEmpty((List<?>) val);
         return true; // 其他类型（如数字、布尔值）只要存在即视为有效
     }
 }
+

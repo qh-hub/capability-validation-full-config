@@ -1,82 +1,112 @@
-# 资源接入申请
+# 应用接入申请的配置定义
 app-access-application:
+  # 定义各种能力类型及其验证规则
   capabilities:
+    # 资源基础能力配置
     - type: resource
+      # 依赖关系为空，表示这是基础能力
       dependencies: []
+      # 字段验证规则定义
       field_rules:
-        # === 无条件必填字段 ===
+        # 无条件必填字段规则
         - required_fields:
-            - tenantName
-        # === 条件必填字段 ===
-        - condition_field: enableReadOnlyUser
-          expected_value: true
+            - tenantName  # 租户名称（必需）
+        # 条件必填字段规则
+        - condition_field: enableReadOnlyUser  # 条件字段
+          expected_value: true                 # 期望值
           required_fields:
-            - readOnlyUserName
+            - readOnlyUserName  # 只读用户名（当enableReadOnlyUser为true时必需）
         - condition_field: enableNonReadOnlyUser
           expected_value: true
           required_fields:
-            - nonReadOnlyUsername
+            - nonReadOnlyUsername  # 非只读用户名（当enableNonReadOnlyUser为true时必需）
+
+    # Nacos配置中心能力
     - type: nacos
+      # 依赖resource能力，必须先配置resource
       dependencies:
         - resource
       field_rules:
-          - required_fields:
-             - userName
+        - required_fields:
+            - userName  # Nacos用户名（必需）
+
+    # 微网关能力配置
     - type: microGateway
+      # 依赖nacos和resource能力
       dependencies:
         - nacos
         - resource
+
+    # 分布式网关能力
     - type: distGateway
+      # 无依赖关系
       dependencies: []
+      # 使用自定义验证器进行特殊校验
       custom_validator: gatewayServiceValidator
       field_rules:
-          - required_fields:
-              - microGatewayBaseUrl
-              - esbBaseUrl
+        - required_fields:
+            - microGatewayBaseUrl  # 微网关基础URL（必需）
+            - esbBaseUrl          # ESB基础URL（必需）
+
+    # 消息队列能力
     - type: message
+      # 依赖resource能力
       dependencies:
         - resource
       field_rules:
-          - required_fields:
-              - scene
-              - cluster
-              - clusterDetail
-              - clusterNameSpace
-              - TopicName
-              - groupName
+        - required_fields:
+            - scene           # 场景标识（必需）
+            - cluster         # 集群配置（必需）
+            - clusterDetail   # 集群详情（必需）
+            - clusterNameSpace # 集群命名空间（必需）
+            - TopicName       # 主题名称（必需）
+            - groupName       # 组名称（必需）
+
+    # 任务调度能力
     - type: job
+      # 依赖resource能力
       dependencies:
         - resource
+
+    # 缓存能力
     - type: cache
+      # 无依赖关系
       dependencies: []
       field_rules:
-          - required_fields:
-              - useCacheClient
-              - performanceTesting
-          - condition_field: unsafeCmdEnable
-            expected-value: true
-            required-fields:
-              - useUnsafeCmdReason
+        - required_fields:
+            - useCacheClient     # 是否使用缓存客户端（必需）
+            - performanceTesting # 性能测试标识（必需）
+        # 条件字段规则
+        - condition_field: useCacheClient
+          expected-value: true
+          required-fields:
+            - unsafeCmd  # 不安全命令标识（当useCacheClient为true时必需）
+
+    # 序列能力
     - type: sequence
+      # 依赖resource能力
       dependencies:
         - resource
+
+    # 事务能力
     - type: transaction
-      conditional_dependencies:
-        - condition_field: transactionMode
-          expected_value: "network"
-          required_capabilities:
-            - resource
-            - nacos
+      # 无依赖关系
+      dependencies: []
       field-rules:
         - required-fields:
-            - transactionMode
+            - transactionMode  # 事务模式（必需）
+        # 条件字段规则
         - condition_field: enableObjectSave
           expected_value: true
           required-fields:
-            - requiredObjectSave
+            - requiredObjectSave  # 对象保存要求（当enableObjectSave为true时必需）
+
+    # 扩展网关能力
     - type: extGateway
+      # 无依赖关系
       dependencies: []
 
+# Spring框架配置
 spring:
   application:
-    name: capability-validation-engine
+    name: capability-validation-engine  # 应用名称
