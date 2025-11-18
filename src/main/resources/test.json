@@ -3,16 +3,7 @@
   "dept": "中间件平台部",
   "applicant": "zhangsan@example.com",
   "capabilities": [
-    "resource",
-    "nacos",
-    "microGateway",
-    "distGateway",
-    "message",
-    "cache",
-    "transaction",
-    "extGateway",
-    "job",
-    "sequence"
+    "transaction"
   ],
   "configData": {
     "resource": {
@@ -60,7 +51,7 @@
       "useUnsafeCmdReason": "使用危险命令的理由"
     },
     "transaction": {
-      "transactionMode": "local/network",
+      "transactionMode": "network",
       "enableObjectSave": true,
       "requiredObjectSave": true
     },

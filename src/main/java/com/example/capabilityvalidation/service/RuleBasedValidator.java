@@ -34,29 +34,50 @@ public class RuleBasedValidator {
             throw new ValidationException("至少选择一个分布式平台能力");
         }
 
-        Set<String> selectedSet = new HashSet<>(selectedCaps);
-
         // 构建规则 Map
         Map<String, CapabilityRuleConfig.CapabilityDefinition> ruleMap = ruleConfig.getCapabilities().stream()
                 .collect(Collectors.toMap(CapabilityRuleConfig.CapabilityDefinition::getType, r -> r));
 
-        // === 第一步：能力依赖校验 ===
+        Map<String, Object> configData = dto.getConfigData() != null ? dto.getConfigData() : Collections.emptyMap();
+
+        // 先收集所有实际需要的能力（静态 + 条件）
+        Set<String> requiredCapabilities = new HashSet<>();
+
+        // 1. 添加静态依赖
         for (String cap : selectedCaps) {
-            var def = ruleMap.get(cap);
-            if (def == null) {
-                throw new ValidationException("不支持的能力类型: " + cap);
-            }
-            for (String dep : def.getDependencies()) {
-                if (!selectedSet.contains(dep)) {
-                    throw new ValidationException(
-                        String.format("启用能力 [%s] 前，必须先启用依赖能力 [%s]", cap, dep)
-                    );
+            CapabilityRuleConfig.CapabilityDefinition def = ruleMap.get(cap);
+            if (def == null) continue;
+            requiredCapabilities.addAll(def.getDependencies());
+        }
+
+        // 2. 检查条件依赖
+        for (String cap : selectedCaps) {
+            CapabilityRuleConfig.CapabilityDefinition def = ruleMap.get(cap);
+            if (def == null || def.getConditionalDependencies() == null) continue;
+
+            Map<String, Object> capConfig = Optional.ofNullable(configData)
+                    .map(m -> (Map<String, Object>) m.get(cap))
+                    .orElse(Collections.emptyMap());
+
+            for (CapabilityRuleConfig.ConditionalDependency condDep : def.getConditionalDependencies()) {
+                Object actualValue = capConfig.get(condDep.getConditionField());
+                if (Objects.equals(actualValue, condDep.getExpectedValue())) {
+                    // 条件满足 → 添加所需能力
+                    requiredCapabilities.addAll(condDep.getRequiredCapabilities());
                 }
             }
         }
 
+        // 3. 检查是否所有 requiredCapabilities 都在 selectedCaps 中
+        for (String requiredCap : requiredCapabilities) {
+            if (!selectedCaps.contains(requiredCap)) {
+                throw new ValidationException(
+                        "能力 [" + String.join(", ", selectedCaps) + "] 的配置触发了对能力 [" + requiredCap + "] 的依赖，但未启用该能力"
+                );
+            }
+        }
+
         // === 第二步：字段级规则校验 ===
-        Map<String, Object> configData = dto.getConfigData() != null ? dto.getConfigData() : Collections.emptyMap();
 
         for (String cap : selectedCaps) {
             if (!ruleMap.containsKey(cap)) continue;

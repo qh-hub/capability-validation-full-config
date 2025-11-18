@@ -62,8 +62,8 @@ app-access-application:
         - resource
     - type: transaction
       conditional_dependencies:
-        - condition_field: platform
-          expected_value: "OSS"
+        - condition_field: transactionMode
+          expected_value: "network"
           required_capabilities:
             - resource
             - nacos

@@ -32,6 +32,9 @@ public class CapabilityRuleConfig {
         private List<String> dependencies = new ArrayList<>();
         private List<FieldRule> fieldRules = new ArrayList<>();
         private String customValidator;
+        // 新增：条件依赖列表
+        private List<ConditionalDependency> conditionalDependencies;
+
 
         public String getType() { return type; }
         public void setType(String type) { this.type = type; }
@@ -49,6 +52,14 @@ public class CapabilityRuleConfig {
         public void setCustomValidator(String customValidator) {
             this.customValidator = customValidator;
         }
+
+        public List<ConditionalDependency> getConditionalDependencies() {
+            return conditionalDependencies;
+        }
+
+        public void setConditionalDependencies(List<ConditionalDependency> conditionalDependencies) {
+            this.conditionalDependencies = conditionalDependencies;
+        }
     }
 
     public static class FieldRule {
@@ -65,5 +76,35 @@ public class CapabilityRuleConfig {
 
         public List<String> getRequiredFields() { return requiredFields; }
         public void setRequiredFields(List<String> requiredFields) { this.requiredFields = requiredFields; }
+    }
+
+    public static class ConditionalDependency {
+        private String conditionField;       // 如 "platform"
+        private Object expectedValue;        // 如 "OSS"
+        private List<String> requiredCapabilities; // 如 ["resource", "nacos"]
+
+        public String getConditionField() {
+            return conditionField;
+        }
+
+        public void setConditionField(String conditionField) {
+            this.conditionField = conditionField;
+        }
+
+        public Object getExpectedValue() {
+            return expectedValue;
+        }
+
+        public void setExpectedValue(Object expectedValue) {
+            this.expectedValue = expectedValue;
+        }
+
+        public List<String> getRequiredCapabilities() {
+            return requiredCapabilities;
+        }
+
+        public void setRequiredCapabilities(List<String> requiredCapabilities) {
+            this.requiredCapabilities = requiredCapabilities;
+        }
     }
 }
